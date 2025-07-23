@@ -1,0 +1,132 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notion</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom style for distinct grey-blue background with curved edges */
+    main {
+      background: linear-gradient(180deg, #bfdbfe 0%, #e5e7eb 50%, #ffffff 100%);
+      border-radius: 1.5rem;
+      margin-top: 2rem;
+      padding: 2rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body class="bg-white font-sans">
+  <!-- Header -->
+  <header class="bg-red-900 text-white py-6">
+    <div class="container mx-auto px-4">
+      <h1 class="text-3xl font-bold">Notion</h1>
+      <p class="mt-2">- thoughts unbound</p>
+    </div>
+  </header>
+
+  <!-- Blog Posts Section -->
+  <main class="container mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Blog Post 1 -->
+      <article class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-semibold text-blue-900 mb-2">First Blog Post</h2>
+        <p class="text-red-700 text-sm mb-4">Posted on July 15, 2025</p>
+        <p class="text-black">This is my first blog post! I'm excited to share my journey with you. Stay tuned for more updates.</p>
+        <a href="#" class="text-blue-600 hover:text-blue-800 mt-4 inline-block">Read More</a>
+      </article>
+      <!-- Blog Post 2 -->
+      <article class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-semibold text-blue-900 mb-2">Exploring New Ideas</h2>
+        <p class="text-red-700 text-sm mb-4">Posted on July 10, 2025</p>
+        <p class="text-black">Today, I explored some new concepts and ideas. Here's what I learned and how it can help you.</p>
+        <a href="#" class="text-blue-600 hover:text-blue-800 mt-4 inline-block">Read More</a>
+      </article>
+      <!-- Add more blog posts here -->
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-maroon-900 text-white py-6">
+    <div class="container mx-auto px-4 text-center">
+      <p>© 2025 Notion. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- JavaScript for dynamic blog post addition -->
+  <script>
+    // Sample blog post data (you can expand this)
+    const blogPosts = [
+      {
+        title: "First Blog Post",
+        date: "July 15, 2025",
+        content: "This is my first blog post! I'm excited to share my journey with you. Stay tuned for more updates.",
+      },
+      {
+        title: "Exploring New Ideas",
+        date: "July 10, 2025",
+        content: "Today, I explored some new concepts and ideas. Here's what I learned and how it can help you.",
+      },
+    ];
+
+    // Function to render blog posts dynamically
+    function renderBlogPosts() {
+      const blogContainer = document.querySelector('.grid');
+      blogContainer.innerHTML = ''; // Clear existing posts
+      blogPosts.forEach(post => {
+        const postElement = document.createElement('article');
+        postElement.className = 'bg-white rounded-lg shadow-md p-6';
+        postElement.innerHTML = `
+          <h2 class="text-2xl font-semibold text-blue-900 mb-2">${post.title}</h2>
+          <p class="text-red-700 text-sm mb-4">Posted on ${post.date}</p>
+          <p class="text-black">${post.content}</p>
+          <a href="#" class="text-blue-600 hover:text-blue-800 mt-4 inline-block">Read More</a>
+        `;
+        blogContainer.appendChild(postElement);
+      });
+    }
+
+    // Call the function to render posts on page load
+    renderBlogPosts();
+  </script>
+</body>
+</html>
